@@ -1,4 +1,4 @@
-{************************************************************************
+﻿{************************************************************************
  Copyright 2015 Oliver Münzberg (aka Sir Rufo)
 
  Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ type
   TProgressChangedEventArgs = class
   private
     FPercentProgress: Integer;
-    FUserState: TValue;
+    FUserState      : TValue;
   public
     constructor Create( APercentProgress: Integer; AUserState: TValue );
     property PercentProgress: Integer read FPercentProgress;
@@ -38,8 +38,8 @@ type
   TDoWorkEventArgs = class
   private
     FArgument: TValue;
-    FCancel: Boolean;
-    FResult: TValue;
+    FCancel  : Boolean;
+    FResult  : TValue;
   public
     constructor Create( AArgument: TValue );
     property Argument: TValue read FArgument;
@@ -50,8 +50,8 @@ type
   TRunWorkerCompletedEventArgs = class
   private
     FCancelled: Boolean;
-    FError: Exception;
-    FResult: TValue;
+    FError    : Exception;
+    FResult   : TValue;
   public
     constructor Create( AResult: TValue; AError: Exception; ACancelled: Boolean );
     property Cancelled: Boolean read FCancelled;
@@ -63,8 +63,8 @@ type
 {$REGION 'Events'}
 
 type
-  TBackgroundWorkerProgressChangedEvent = procedure( Sender: TObject; e: TProgressChangedEventArgs ) of object;
-  TBackgroundWorkerDoWorkEvent = procedure( Sender: TObject; e: TDoWorkEventArgs ) of object;
+  TBackgroundWorkerProgressChangedEvent    = procedure( Sender: TObject; e: TProgressChangedEventArgs ) of object;
+  TBackgroundWorkerDoWorkEvent             = procedure( Sender: TObject; e: TDoWorkEventArgs ) of object;
   TBackgroundWorkerRunWorkerCompletedEvent = procedure( Sender: TObject; e: TRunWorkerCompletedEventArgs ) of object;
 {$ENDREGION}
 {$REGION 'CustomBackgroundWorker'}
@@ -72,14 +72,14 @@ type
 type
   TCustomBackgroundWorker = class( TComponent )
   private
-    FThread: TThread;
-    FDoWorkEventArg: TDoWorkEventArgs;
-    FCancellationPending: Boolean;
-    FWorkerReportsProgress: Boolean;
+    FThread                    : TThread;
+    FDoWorkEventArg            : TDoWorkEventArgs;
+    FCancellationPending       : Boolean;
+    FWorkerReportsProgress     : Boolean;
     FWorkerSupportsCancellation: Boolean;
-    FOnDoWork: TBackgroundWorkerDoWorkEvent;
-    FOnProgressChanged: TBackgroundWorkerProgressChangedEvent;
-    FOnRunWorkerCompleted: TBackgroundWorkerRunWorkerCompletedEvent;
+    FOnDoWork                  : TBackgroundWorkerDoWorkEvent;
+    FOnProgressChanged         : TBackgroundWorkerProgressChangedEvent;
+    FOnRunWorkerCompleted      : TBackgroundWorkerRunWorkerCompletedEvent;
     function GetCancellationPending: Boolean;
     procedure WorkerThreadTerminate( Sender: TObject );
     function GetIsBusy: Boolean;
@@ -97,15 +97,14 @@ type
     procedure RunWorkerAsync<T>( Argument: T ); overload;
     procedure RunWorkerAsync( Argument: TValue ); overload;
 
-    property CancellationRequested: Boolean read GetCancellationPending;
     property CancellationPending: Boolean read GetCancellationPending;
     property IsBusy: Boolean read GetIsBusy;
   protected
-    property OnDoWork: TBackgroundWorkerDoWorkEvent read FOnDoWork write FOnDoWork;
-    property OnProgressChanged: TBackgroundWorkerProgressChangedEvent read FOnProgressChanged write FOnProgressChanged;
+    property OnDoWork            : TBackgroundWorkerDoWorkEvent read FOnDoWork write FOnDoWork;
+    property OnProgressChanged   : TBackgroundWorkerProgressChangedEvent read FOnProgressChanged write FOnProgressChanged;
     property OnRunWorkerCompleted: TBackgroundWorkerRunWorkerCompletedEvent read FOnRunWorkerCompleted write FOnRunWorkerCompleted;
   public
-    property WorkerReportsProgress: Boolean read FWorkerReportsProgress write FWorkerReportsProgress;
+    property WorkerReportsProgress     : Boolean read FWorkerReportsProgress write FWorkerReportsProgress;
     property WorkerSupportsCancellation: Boolean read FWorkerSupportsCancellation write FWorkerSupportsCancellation;
   end;
 {$ENDREGION}
@@ -127,6 +126,7 @@ implementation
 {$REGION 'Ressourcestrings'}
 
 resourcestring
+  SIntegerArgumentOutOfRange = '%s: value %d is out of range [%d..%d]';
   SWorkerDoesNotSupportsCancellation = 'Worker does not supports cancellation';
   SWorkerDoesNotReportsProgress = 'Worker does not reports progress';
   SWorkerIsBusy = 'Worker is busy';
@@ -137,8 +137,11 @@ resourcestring
 constructor TProgressChangedEventArgs.Create( APercentProgress: Integer; AUserState: TValue );
 begin
   inherited Create;
+  if ( APercentProgress < 0 ) or ( APercentProgress > 100 )
+  then
+    raise EArgumentOutOfRangeException.CreateFmt( SIntegerArgumentOutOfRange, [ 'APercentProgress', APercentProgress, 0, 100 ] );
   FPercentProgress := APercentProgress;
-  FUserState := AUserState;
+  FUserState       := AUserState;
 end;
 
 { TDoWorkEventArgs }
@@ -155,8 +158,8 @@ constructor TRunWorkerCompletedEventArgs.Create( AResult: TValue; AError: Except
 begin
   inherited Create;
   FCancelled := ACancelled;
-  FError := AError;
-  FResult := AResult;
+  FError     := AError;
+  FResult    := AResult;
 end;
 
 {$ENDREGION}
@@ -165,7 +168,8 @@ end;
 
 procedure TCustomBackgroundWorker.CancelAsync;
 begin
-  if not WorkerSupportsCancellation then
+  if not WorkerSupportsCancellation
+  then
     raise EInvalidOpException.Create( SWorkerDoesNotSupportsCancellation );
 
   FCancellationPending := True;
@@ -188,46 +192,55 @@ end;
 
 procedure TCustomBackgroundWorker.NotifyDoWork( e: TDoWorkEventArgs );
 begin
-  if Assigned( FOnDoWork ) then
+  if Assigned( FOnDoWork )
+  then
     FOnDoWork( Self, e );
 end;
 
 procedure TCustomBackgroundWorker.NotifyProgressChanged( e: TProgressChangedEventArgs; ADispose: Boolean );
 begin
-  if not( csDestroying in ComponentState ) then
+  if not( csDestroying in ComponentState )
+  then
     TThread.Queue( nil,
       procedure
       begin
         try
-          if Assigned( FOnProgressChanged ) then
+          if Assigned( FOnProgressChanged )
+          then
             FOnProgressChanged( Self, e );
         finally
-          if ADispose then
+          if ADispose
+          then
             e.Free;
         end;
       end )
   else
-  begin
-    if ADispose then
-      e.Free;
-  end;
+    begin
+      if ADispose
+      then
+        e.Free;
+    end;
 end;
 
 procedure TCustomBackgroundWorker.NotifyRunCompleted( e: TRunWorkerCompletedEventArgs; ADispose: Boolean );
 begin
   try
-    if not( csDestroying in ComponentState ) then
-      if Assigned( FOnRunWorkerCompleted ) then
+    if not( csDestroying in ComponentState )
+    then
+      if Assigned( FOnRunWorkerCompleted )
+      then
         FOnRunWorkerCompleted( Self, e );
   finally
-    if ADispose then
+    if ADispose
+    then
       e.Free;
   end;
 end;
 
 procedure TCustomBackgroundWorker.ReportProgress( PercentProgress: Integer; UserState: TValue );
 begin
-  if not WorkerReportsProgress then
+  if not WorkerReportsProgress
+  then
     raise EInvalidOpException.Create( SWorkerDoesNotReportsProgress );
 
   NotifyProgressChanged( TProgressChangedEventArgs.Create( PercentProgress, UserState ) );
@@ -240,11 +253,12 @@ end;
 
 procedure TCustomBackgroundWorker.RunWorkerAsync( Argument: TValue );
 begin
-  if IsBusy then
+  if IsBusy
+  then
     raise EInvalidOpException.Create( SWorkerIsBusy );
 
   FCancellationPending := False;
-  FDoWorkEventArg := TDoWorkEventArgs.Create( Argument );
+  FDoWorkEventArg      := TDoWorkEventArgs.Create( Argument );
 
   FThread := TThread.CreateAnonymousThread(
     procedure
@@ -262,15 +276,16 @@ end;
 
 procedure TCustomBackgroundWorker.WorkerThreadTerminate( Sender: TObject );
 var
-  LThread: TThread;
+  LThread        : TThread;
   LDoWorkEventArg: TDoWorkEventArgs;
 begin
-  LThread := FThread;
+  LThread         := FThread;
   LDoWorkEventArg := FDoWorkEventArg;
-  FThread := nil;
+  FThread         := nil;
   FDoWorkEventArg := nil;
   try
-    if Assigned( LThread.FatalException ) then
+    if Assigned( LThread.FatalException )
+    then
       NotifyRunCompleted( TRunWorkerCompletedEventArgs.Create( TValue.Empty, LThread.FatalException as Exception, False ) )
     else
       NotifyRunCompleted( TRunWorkerCompletedEventArgs.Create( LDoWorkEventArg.Result, nil, LDoWorkEventArg.Cancel ) );
