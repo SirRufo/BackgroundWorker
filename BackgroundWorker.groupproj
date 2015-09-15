@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{02F233C0-F861-4968-844A-5447E2ED7673}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="BackgroundWorker.Tests\BackgroundWorker.Tests.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Examples\SimpleAndDocumented\SimpleAndDocumented.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="BackgroundWorker_Tests">
+        <MSBuild Projects="BackgroundWorker.Tests\BackgroundWorker.Tests.dproj"/>
+    </Target>
+    <Target Name="BackgroundWorker_Tests:Clean">
+        <MSBuild Projects="BackgroundWorker.Tests\BackgroundWorker.Tests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="BackgroundWorker_Tests:Make">
+        <MSBuild Projects="BackgroundWorker.Tests\BackgroundWorker.Tests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SimpleAndDocumented">
+        <MSBuild Projects="Examples\SimpleAndDocumented\SimpleAndDocumented.dproj"/>
+    </Target>
+    <Target Name="SimpleAndDocumented:Clean">
+        <MSBuild Projects="Examples\SimpleAndDocumented\SimpleAndDocumented.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SimpleAndDocumented:Make">
+        <MSBuild Projects="Examples\SimpleAndDocumented\SimpleAndDocumented.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="BackgroundWorker_Tests;SimpleAndDocumented"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="BackgroundWorker_Tests:Clean;SimpleAndDocumented:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="BackgroundWorker_Tests:Make;SimpleAndDocumented:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
