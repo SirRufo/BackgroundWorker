@@ -116,8 +116,8 @@ type
     property OnDoWork;
     property OnProgressChanged;
     property OnRunWorkerCompleted;
-    property WorkerReportsProgress;
-    property WorkerSupportsCancellation;
+    property WorkerReportsProgress default False;
+    property WorkerSupportsCancellation default False;
   end;
 {$ENDREGION}
 
